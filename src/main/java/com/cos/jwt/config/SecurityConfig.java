@@ -8,7 +8,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
+
+import com.cos.jwt.filter.MyFilter3;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +24,7 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		http.addFilterBefore(new MyFilter3(), BasicAuthenticationFilter.class);
 		http.csrf(CsrfConfigurer::disable);
 		http
 			.sessionManagement(sessionManagement ->
