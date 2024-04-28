@@ -1,6 +1,7 @@
 package com.cos.jwt.config.jwt;
 
 import java.io.IOException;
+import java.util.Date;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -8,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.cos.jwt.config.auth.PrincipalDetails;
 import com.cos.jwt.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,9 +68,19 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	@Override
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
 		Authentication authResult) throws IOException, ServletException {
-
 		System.out.println("JwtAuthenticationFilter.successfulAuthentication - 인증이 완료되었습니다.");
 
-		super.successfulAuthentication(request, response, chain, authResult);
+		PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
+
+		// RSA 방식이 아닌 HASH 암호 방식
+		String jwtToken = JWT.create()
+			.withSubject("cos 토큰")    // 크게 의미 없다.
+			.withExpiresAt(new Date(System.currentTimeMillis() + (60000 * 10)))    // 10분
+			// claim에는 넣고 싶은 정보 넣으면 된다.
+			.withClaim("id", principalDetails.getUser().getId())
+			.withClaim("username", principalDetails.getUser().getUsername())
+			.sign(Algorithm.HMAC512("cos"));
+
+		response.addHeader("Authorization", "Bearer " + jwtToken);
 	}
 }
